@@ -91,44 +91,40 @@ services:
       - spark
 
   mongodb:
-    image: mongo:6.0
-    container_name: mongodb
-    restart: always
+    image: mongo:6.0.11   
+    container_name: mongo
     ports:
-      - "27020:27017"
+      - "27017:27017"
     environment:
       MONGO_INITDB_ROOT_USERNAME: admin
-      MONGO_INITDB_ROOT_PASSWORD: password
+      MONGO_INITDB_ROOT_PASSWORD: admin123
     volumes:
-      - mongo-data:/data/db
-
-  mongo-express:
-    image: mongo-express:latest
-    container_name: mongo-express
-    restart: always
-    ports:
-      - "8082:8081"
-    environment:
-      ME_CONFIG_MONGODB_ADMINUSERNAME: admin
-      ME_CONFIG_MONGODB_ADMINPASSWORD: password # password
-      ME_CONFIG_MONGODB_SERVER: mongodb
+      - mongo_data:/data/db
 
   jupyter:
-    image: jupyter/pyspark-notebook:latest
+    image: jupyter/scipy-notebook:latest
     container_name: jupyter
     ports:
-      - "8899:8888"
-      - "8501:8501"
-
+      - "8888:8888"
     volumes:
       - ./notebooks:/home/jovyan/work
     environment:
-      JUPYTER_TOKEN: "lab1234"
-    depends_on:
-      - spark
-      - kafka1
-      - mongodb
+      JUPYTER_TOKEN: "1234"
+
+  streamlit:
+    build: ./app
+    container_name: streamlit
+    ports:
+      - "8501:8501"
+    volumes:
+      - ./app:/app
+
+  redis:
+    image: redis:7
+    container_name: redis
+    ports:
+      - "6379:6379"
 
 volumes:
-  mongo-data:
+  mongo_data:
 

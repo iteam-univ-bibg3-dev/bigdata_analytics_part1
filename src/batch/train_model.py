@@ -27,7 +27,7 @@ def train_model(input_path="../data/processed/reddit_features.parquet",
     print(f"Test AUC = {auc}")
 
     model.save(model_path)
-    print(f"✅ Model saved at {model_path}")
+    print(f" Model saved at {model_path}")
 
     spark.stop()
 

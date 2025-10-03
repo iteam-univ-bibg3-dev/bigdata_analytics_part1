@@ -1,7 +1,7 @@
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import col, length, when
 
-# ✅ Spark session
+
 spark = SparkSession.builder \
     .appName("RedditPreprocessBatch") \
     .getOrCreate()
@@ -28,4 +28,4 @@ df = df.withColumn("is_popular", when(col("score") > 10, 1).otherwise(0))  # Lab
 # Sauvegarder données preprocessées
 df.write.mode("overwrite").parquet("data/processed/reddit_preprocessed.parquet")
 
-print("✅ Preprocessing terminé")
+print(" Preprocessing terminé")

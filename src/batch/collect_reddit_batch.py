@@ -2,7 +2,6 @@ from pmaw import PushshiftAPI
 import pandas as pd
 from datetime import datetime, timedelta
 
-# ✅ Initialiser API
 api = PushshiftAPI()
 
 # Exemple : collecter posts du subreddit "datascience" sur les 7 derniers jours
@@ -28,4 +27,4 @@ df = pd.DataFrame(posts)
 df.to_json("data/raw/reddit_posts.json", orient="records", lines=True)
 df.to_parquet("data/raw/reddit_posts.parquet", engine="pyarrow")
 
-print("✅ Data saved to data/raw/")
+print(" Data saved to data/raw/")

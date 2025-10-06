@@ -25,6 +25,7 @@ def generate_patient_data(patient_id):
         'oxygen_saturation': random.randint(95, 100),
         'respiratory_rate': random.randint(12, 20),
         'temperature': round(random.uniform(36.0, 38.0), 1)
+        
     }
 
 def main():

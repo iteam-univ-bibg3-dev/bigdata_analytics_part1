@@ -1,0 +1,11 @@
+{
+  "mappings": {
+    "properties": {
+      "window_start": { "type": "date" },
+      "window_end": { "type": "date" },
+      "team": { "type": "keyword" },
+      "match_id": { "type": "keyword" },
+      "goals_count": { "type": "integer" }
+    }
+  }
+}

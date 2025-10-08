@@ -1,0 +1,17 @@
+{
+  "mappings": {
+    "properties": {
+      "timestamp": { "type": "date", "format": "strict_date_optional_time||epoch_millis" },
+      "source": { "type": "keyword" },
+      "match_id": { "type": "keyword" },
+      "competition": { "type": "keyword" },
+      "home_team": { "type": "keyword" },
+      "away_team": { "type": "keyword" },
+      "home_score": { "type": "integer" },
+      "away_score": { "type": "integer" },
+      "status": { "type": "keyword" },
+      "events": { "type": "nested" },
+      "raw": { "type": "object", "enabled": true }
+    }
+  }
+}

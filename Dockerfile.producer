@@ -1,0 +1,16 @@
+FROM python:3.10-slim
+
+# Définir le dossier de travail
+WORKDIR /app
+
+# Copier le script producer
+COPY producer.py /app/producer.py
+
+# Installer les dépendances Python
+RUN pip install --no-cache-dir requests kafka-python
+
+# Forcer le flush des logs Python
+ENV PYTHONUNBUFFERED=1
+
+# Commande par défaut pour lancer le producer
+CMD ["python", "/app/producer.py"]

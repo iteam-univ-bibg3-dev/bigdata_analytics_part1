@@ -1,75 +1,78 @@
-# KAFKA PRODUCER 
-
-import os, time, json, logging, requests
+import time
+import json
+import requests
 from kafka import KafkaProducer
 from datetime import datetime
 
-logging.basicConfig(level=logging.INFO)
-KAFKA = os.getenv("KAFKA_BOOTSTRAP", "localhost:9092")
-TOPIC = "football-events"
-API_KEY = os.getenv("FOOTBALL_API_KEY")  #set in .env_api
-BASE = "https://v3.football.api-sports.io"
+KAFKA_BOOTSTRAP = "kafka:9092"
+KAFKA_TOPIC = "football.raw_events"
+LIVE_SCORE_API_URL = "https://livescore-api.com/api-client/scores/live.json"
+API_KEY = "n43jTG7tnHWSmTdm"
+API_SECRET = "XutWaHPASvvUOW1c15wVLDo9kk1Hef4b"
 
-if not API_KEY:
-    raise SystemExit("Set FOOTBALL_API_KEY env var (x-apisports-key)")
 
-producer = KafkaProducer(
-    bootstrap_servers=KAFKA,
-    value_serializer=lambda v: json.dumps(v).encode("utf-8"),
-    key_serializer=lambda k: k.encode("utf-8") if k else None,
-    retries=5,
-    compression_type="gzip",
-    linger_ms=50
-)
+def create_producer():
+    """Initialise KafkaProducer avec gestion de reconnexion."""
+    while True:
+        try:
+            producer = KafkaProducer(
+                bootstrap_servers=KAFKA_BOOTSTRAP,
+                value_serializer=lambda v: json.dumps(v).encode("utf-8"),
+                retries=5,
+            )
+            print("[INFO] ****KafkaProducer connecté avec succès.****")
+            return producer
+        except Exception as e:
+            print(f"[ERREUR] Kafka non disponible ({e}), nouvelle tentative dans 5s...")
+            time.sleep(5)
 
-HEADERS = {
-    "x-apisports-key": API_KEY,
-    "x-rapidapi-host": "v3.football.api-sports.io"
-}
 
-def fetch_live_fixtures():
-    # many plans: live param returns live matches (if any)
-    url = f"{BASE}/fixtures?live=all"  # returns live fixtures; if none, empty
-    r = requests.get(url, headers=HEADERS, timeout=10)
-    r.raise_for_status()
-    obj = r.json()
-    # API returns {"get":"fixtures", "results":X, "response":[...]}
-    return obj.get("response", [])
-
-def build_message(fixture):
-    # normalize fields
-    return {
-        "fixture": fixture.get("fixture", {}),
-        "league": fixture.get("league", {}),
-        "teams": fixture.get("teams", {}),
-        "goals": fixture.get("goals", {}),
-        "score": fixture.get("score", {}),
-        "events": fixture.get("events", []),  # may be empty
-        "timestamp": int(time.time()*1000),
-        "source": "api-football"
-    }
-
-def main(poll=10):
+def live_scores():
+    """Récupère les scores en direct via l’API Live Score."""
+    params = {"key": API_KEY, "secret": API_SECRET}
     try:
-        while True:
-            fixtures = fetch_live_fixtures()
-            now = datetime.utcnow().isoformat()
-            if fixtures:
-                for f in fixtures:
-                    key = str(f.get("fixture", {}).get("id", "unknown"))
-                    msg = build_message(f)
-                    producer.send(TOPIC, key=key, value=msg)
-                producer.flush()
-                logging.info(f"[{now}] Produced {len(fixtures)} live fixtures to {TOPIC}")
-            else:
-                logging.info(f"[{now}] No live fixtures found")
-            time.sleep(poll)
-    except KeyboardInterrupt:
-        logging.info("Stopped by user")
+        response = requests.get(LIVE_SCORE_API_URL, params=params, timeout=10)
+        response.raise_for_status()
+        data = response.json()
+        return data.get("data", {}).get("match", [])
     except Exception as e:
-        logging.exception("Producer error")
-    finally:
-        producer.close()
+        print(f"[ERREUR] Impossible de récupérer les scores : {e}")
+        return []
+
+
+def publish_matches(producer, matches):
+    """Envoie la liste des matchs à Kafka."""
+    for match in matches:
+        message = {
+            "timestamp": datetime.utcnow().isoformat(),
+            "source": "live-score-api",
+            "match_id": match.get("id"),
+            "competition": match.get("competition", {}).get("name"),
+            "home_team": match.get("home_name"),
+            "away_team": match.get("away_name"),
+            "home_score": match.get("home_score"),
+            "away_score": match.get("away_score"),
+            "status": match.get("status"),
+            "events_count": len(match.get("events", [])),
+        }
+        producer.send(KAFKA_TOPIC, value=message)
+
+    producer.flush()
+    print(f"[INFO] {len(matches)} matchs envoyés à Kafka.")
+
+
+def main():
+    producer = create_producer()
+
+    while True:
+        matches = live_scores()
+        if matches:
+            publish_matches(producer, matches)
+        else:
+            print("[INFO] Aucun match en direct pour le moment.")
+
+        time.sleep(30)
+
 
 if __name__ == "__main__":
     main()

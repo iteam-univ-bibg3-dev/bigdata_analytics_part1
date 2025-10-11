@@ -1,0 +1,5 @@
+kafka-python
+requests
+feedparser
+python-dateutil
+skyfield

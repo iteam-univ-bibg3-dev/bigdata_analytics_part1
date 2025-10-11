@@ -1,0 +1,37 @@
+{
+  "index_patterns": ["nature_data*"],
+  "template": {
+    "settings": {
+      "number_of_shards": 3,
+      "number_of_replicas": 1,
+      "refresh_interval": "30s",
+      "analysis": {
+        "analyzer": {
+          "default": {
+            "type": "standard"
+          }
+        }
+      }
+    },
+    "mappings": {
+      "dynamic": true,
+      "properties": {
+        "type":             { "type": "keyword" },
+        "source":           { "type": "keyword", "null_value": "unknown" },
+        "satellite_name":   { "type": "keyword", "null_value": "N/A" },
+        "latitude":         { "type": "float" },
+        "longitude":        { "type": "float" },
+        "altitude_km":      { "type": "float", "null_value": 0 },
+        "velocity_kms":     { "type": "float", "null_value": 0 },
+        "intensity":        { "type": "float", "null_value": 0 },
+        "description":      { "type": "text", "analyzer": "standard" },
+        "timestamp":        { "type": "date", "format": "epoch_millis" },
+        "geometry":         { "type": "geo_point" },
+        "metadata":         { "type": "object", "enabled": true }
+      }
+    }
+  },
+  "_meta": {
+    "description": "Template for multi-source space & nature events from Kafka producer. Includes geo_point, timestamp in epoch_millis, and metadata object for Kibana compatibility."
+  }
+}

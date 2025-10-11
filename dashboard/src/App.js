@@ -3,7 +3,7 @@ import Globe from "react-globe.gl";
 import * as THREE from "three";
 import "./App.css";
 
-export default function Globe3D() {
+export default function App() {
   const globeEl = useRef();
   const infoBoxRef = useRef(null);
 
@@ -71,25 +71,25 @@ export default function Globe3D() {
   });
 
   // -------- Create markers with bigger size and higher altitude --------
-  const markers = filteredEvents.map(e => {
-    let color = "white";
-    let size = 1;
-    let shape = "circle";
-    let altitude = 0.01;
+const markers = filteredEvents.map(e => {
+  let color = "white";
+  let size = 1;
+  let shape = "circle";
+  let altitude = 0.01;
 
-    switch (e.type) {
-      case "iss": color = "magenta"; shape = "circle"; size = 15; altitude = 0.06; break;
-      case "fire": color = "red"; shape = "triangle"; size = 12; altitude = 0.04; break;
-      case "aurora": color = "lime"; shape = "circle"; size = 10; altitude = 0.03; break;
-      case "volcanoe": color = "orange"; shape = "triangle"; size = 14; altitude = 0.05; break;
-      case "earthquake": color = "green"; shape = "circle"; size = 16; altitude = 0.06; break;
-      case "severestorm": color = "blue"; shape = "triangle"; size = 11; altitude = 0.04; break;
-      case "flood": color = "cyan"; shape = "circle"; size = 11; altitude = 0.04; break;
-      default: color = "white"; shape = "circle"; size = 10; altitude = 0.03;
-    }
+  switch (e.type) {
+    case "iss": color = "magenta"; shape = "circle"; size = 60; altitude = 0.08; break;
+    case "fire": color = "red"; shape = "triangle"; size = 50; altitude = 0.06; break;
+    case "aurora": color = "lime"; shape = "circle"; size = 45; altitude = 0.05; break;
+    case "volcanoe": color = "orange"; shape = "triangle"; size = 55; altitude = 0.07; break;
+    case "earthquake": color = "green"; shape = "circle"; size = 65; altitude = 0.08; break;
+    case "severestorm": color = "blue"; shape = "triangle"; size = 48; altitude = 0.06; break;
+    case "flood": color = "cyan"; shape = "circle"; size = 48; altitude = 0.06; break;
+    default: color = "white"; shape = "circle"; size = 45; altitude = 0.05;
+  }
 
-    return { ...e, lat: e.latitude, lng: e.longitude, color, size, shape, altitude };
-  });
+  return { ...e, lat: e.latitude, lng: e.longitude, color, size, shape, altitude };
+});
 
   // -------- Custom 2D markers (visible shapes) --------
   const point2D = d => {
@@ -123,7 +123,7 @@ export default function Globe3D() {
     // face outward
     obj.lookAt(new THREE.Vector3(0, 0, 0));
     // scaled properly
-    obj.scale.set(d.size * 0.02, d.size * 0.02, d.size * 0.02);
+    obj.scale.set(d.size * 0.04, d.size * 0.04, d.size * 0.04);
 
     return obj;
   };
@@ -168,7 +168,7 @@ export default function Globe3D() {
         pointLng="lng"
         pointColor="color"
         pointAltitude={d => d.altitude}
-        pointsTransitionDuration={1000}
+        pointsTransitionDuration={5000}
         onPointClick={setHovered}
         customThreeObject={point2D}
         polygonsData={countries}
@@ -188,14 +188,22 @@ export default function Globe3D() {
           <h3 style={{ margin: "0 0 8px 0", color: hovered.color }}>
             {hovered.type?.toUpperCase()}
           </h3>
-          {hovered.satellite_name && <div>Satellite: {hovered.satellite_name}</div>}
-          {hovered.velocity_kms && <div>Velocity: {hovered.velocity_kms.toFixed(2)} km/s</div>}
           {hovered.altitude_km && <div>Altitude: {hovered.altitude_km.toFixed(1)} km</div>}
           {hovered.intensity && <div>Intensity: {hovered.intensity}</div>}
           {hovered.description && <div>Description: {hovered.description}</div>}
           <div>Lat: {hovered.latitude?.toFixed(2)}</div>
           <div>Lng: {hovered.longitude?.toFixed(2)}</div>
-          {hovered.timestamp && <div>Time: {new Date(hovered.timestamp * 1000).toLocaleString()}</div>}
+          {hovered.timestamp && (
+            <div>
+              Time: {
+                new Date(
+                  hovered.timestamp > 1e12  // if already in ms
+                    ? hovered.timestamp
+                    : hovered.timestamp * 1000
+                ).toLocaleString()
+              }
+            </div>
+          )}
         </div>
       )}
 

@@ -1,0 +1,33 @@
+data/
+reddit_streaming/data/
+reddit_streaming/data/mongo/
+*.log
+# --- Fichiers à ignorer pour le projet Reddit Streaming ---
+
+# Environnements virtuels
+venv/
+../venv/
+
+# Données MongoDB
+data/
+reddit_streaming/data/
+reddit_streaming/data/mongo/
+
+# Fichiers Docker
+*.log
+*.pid
+*.tmp
+
+# Fichiers Python inutiles
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Cache Streamlit
+.streamlit/
+
+# Système
+.DS_Store
+.idea/
+.vscode/

@@ -1,0 +1,22 @@
+
+# Dockerfile.consumer
+FROM python:3.10-slim
+
+
+WORKDIR /app
+
+
+COPY requirements.txt .
+COPY consumer.py .
+
+
+RUN pip install --no-cache-dir -r requirements.txt
+
+
+ENV KAFKA_BOOTSTRAP=kafka:9092
+ENV KAFKA_TOPIC=football.raw_events
+ENV ES_URL=http://elasticsearch:9200
+ENV ES_INDEX=football_events
+
+
+CMD ["python", "consumer.py"]

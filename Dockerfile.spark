@@ -1,23 +1,39 @@
-# Image avec Java 11 (pour Spark) et Python
-FROM openjdk:11-jdk-slim
+
+
+FROM openjdk:17-slim
+ 
+# Set working directory
 
 WORKDIR /app
+ 
 
-# Installer Python, pip et curl
+
 RUN apt-get update && \
+
     apt-get install -y python3 python3-pip curl && \
+
     apt-get clean && \
+
     rm -rf /var/lib/apt/lists/*
+ 
+# Install PySpark and other Python libs
 
-# Copier le fichier requirements et installer les dépendances
-COPY requirements-spark.txt /app/requirements-spark.txt
-RUN pip3 install --no-cache-dir -r /app/requirements-spark.txt
+RUN pip3 install pyspark kafka-python elasticsearch
+ 
+# Copy all project files
 
-# Copier le code Spark (consumer.py, etc.)
 COPY . /app
+ 
+# Environment variables
 
-# Forcer le flush des logs Python
 ENV PYTHONUNBUFFERED=1
 
-# Commande par défaut pour lancer le consumer Spark
-CMD ["python3", "consumer.py"]
+ENV SPARK_HOME=/opt/spark
+
+ENV PATH=$SPARK_HOME/bin:$PATH
+ 
+# Default command
+
+CMD ["python3", "kafka_spark_consumer.py"]
+
+ 

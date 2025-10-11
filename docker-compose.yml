@@ -1,29 +1,36 @@
 
 services:
+  # --- Zookeeper ---
   zookeeper:
-    image: zookeeper:3.9
+    image: confluentinc/cp-zookeeper:7.5.0
     container_name: zookeeper
     environment:
       ZOO_ALLOW_ANONYMOUS_LOGIN: "yes"
+      ZOOKEEPER_CLIENT_PORT: 2181
     ports:
       - "2181:2181"
+    networks:
+      - kafka-net
 
+  # --- Kafka ---
   kafka:
-    image: bitnami/kafka:3
+    image: confluentinc/cp-kafka:7.5.0
     container_name: kafka
-    environment:
-      - KAFKA_BROKER_ID=1
-      - KAFKA_ZOOKEEPER_CONNECT=zookeeper:2181
-      - KAFKA_LISTENERS=PLAINTEXT://:9092
-      - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://kafka:9092
-      - ALLOW_PLAINTEXT_LISTENER=yes
-      - KAFKA_MESSAGE_MAX_BYTES=200000000
-      - KAFKA_REPLICA_FETCH_MAX_BYTES=200000000
     depends_on:
       - zookeeper
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENERS: PLAINTEXT://:9092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
     ports:
       - "9092:9092"
+    networks:
+      - kafka-net
 
+  # --- Elasticsearch
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:7.17.9
     container_name: elasticsearch
@@ -31,20 +38,19 @@ services:
       - discovery.type=single-node
       - xpack.security.enabled=false
       - "ES_JAVA_OPTS=-Xms1g -Xmx1g"
-    ulimits:
-      memlock:
-        soft: -1
-        hard: -1
     volumes:
       - esdata:/usr/share/elasticsearch/data
     ports:
       - "9200:9200"
     healthcheck:
-      test: ["CMD-SHELL", "curl -s http://localhost:9200/_cluster/health || exit 1"]
+      test: ["CMD-SHELL", "curl -fs http://localhost:9200/_cluster/health || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 10
+    networks:
+      - kafka-net
 
+  # --- Kibana 
   kibana:
     image: docker.elastic.co/kibana/kibana:7.17.17
     container_name: kibana
@@ -55,44 +61,52 @@ services:
         condition: service_healthy
     ports:
       - "5601:5601"
+    networks:
+      - kafka-net
 
+  # --- Producer 
   producer:
     build:
       context: .
       dockerfile: Dockerfile.producer
     container_name: producer
     environment:
-      - API_KEY=${API_KEY}
-      - API_SECRET=${API_SECRET}
-      - LIVE_SCORE_API_URL=${LIVE_SCORE_API_URL:-https://www.live-score-api.com/api-client/scores/live.json}
       - KAFKA_BOOTSTRAP=kafka:9092
       - KAFKA_TOPIC=football.raw_events
+      - LIVE_SCORE_API_URL=https://livescore-api.com/api-client/scores/live.json
+      - API_KEY=n43jTG7tnHWSmTdm
+      - API_SECRET=XutWaHPASvvUOW1c15wVLDo9kk1Hef4b
       - POLL_INTERVAL=30
     depends_on:
-      - kafka
+      kafka:
+        condition: service_started
     restart: unless-stopped
+    networks:
+      - kafka-net
 
-  spark:
+  # --- Consumer 
+  consumer:
     build:
       context: .
-      dockerfile: Dockerfile.spark
-    container_name: spark
+      dockerfile: Dockerfile.consumer
+    container_name: consumer
     environment:
       - KAFKA_BOOTSTRAP=kafka:9092
       - KAFKA_TOPIC=football.raw_events
-      - ES_HOST=http://elasticsearch:9200
-      - ES_INDEX_RAW=events-raw
-      - ES_INDEX_AGG=events-agg
-      - CHECKPOINT_ROOT=/checkpoints
-    volumes:
-      - spark_checkpoints:/checkpoints
+      - ES_URL=http://elasticsearch:9200
+      - ES_INDEX=football_events
     depends_on:
       kafka:
         condition: service_started
       elasticsearch:
         condition: service_healthy
     restart: unless-stopped
+    networks:
+      - kafka-net
 
 volumes:
   esdata:
-  spark_checkpoints:
+
+networks:
+  kafka-net:
+    driver: bridge

@@ -1,6 +1,15 @@
-kafka-python
-requests
-pyspark
-elasticsearch
-streamlit
-plotly
+# Kafka client pour produire et consommer des messages
+kafka-python==2.0.2
+
+# Requêtes HTTP (utilisé par le producer pour interroger l'API de football)
+requests==2.31.0
+
+# Client Elasticsearch officiel (indexation et requêtes)
+elasticsearch==8.12.0
+
+# Visualisation interactive des données (optionnel, côté analyse ou dashboard)
+plotly==5.22.0
+
+# Utilitaires supplémentaires (optionnel mais utile)
+urllib3==2.2.2
+certifi==2024.8.30

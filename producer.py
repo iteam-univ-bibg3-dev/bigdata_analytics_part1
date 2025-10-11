@@ -1,8 +1,11 @@
+# KAFKA PRODUCER
+
 import time
 import json
 import requests
 from kafka import KafkaProducer
 from datetime import datetime
+from datetime import timezone
 
 KAFKA_BOOTSTRAP = "kafka:9092"
 KAFKA_TOPIC = "football.raw_events"
@@ -20,7 +23,7 @@ def create_producer():
                 value_serializer=lambda v: json.dumps(v).encode("utf-8"),
                 retries=5,
             )
-            print("[INFO] ****KafkaProducer connecté avec succès.****")
+            print("[INFO] **** KafkaProducer connecté avec succès.****")
             return producer
         except Exception as e:
             print(f"[ERREUR] Kafka non disponible ({e}), nouvelle tentative dans 5s...")
@@ -43,17 +46,18 @@ def live_scores():
 def publish_matches(producer, matches):
     """Envoie la liste des matchs à Kafka."""
     for match in matches:
+        match_id = match.get("id") or f"{match.get('home_name','home')}_{match.get('away_name','away')}"
         message = {
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "source": "live-score-api",
-            "match_id": match.get("id"),
+            "match_id": str(match_id),
             "competition": match.get("competition", {}).get("name"),
             "home_team": match.get("home_name"),
             "away_team": match.get("away_name"),
             "home_score": match.get("home_score"),
             "away_score": match.get("away_score"),
             "status": match.get("status"),
-            "events_count": len(match.get("events", [])),
+            #"events_count": match.get("events", []),
         }
         producer.send(KAFKA_TOPIC, value=message)
 

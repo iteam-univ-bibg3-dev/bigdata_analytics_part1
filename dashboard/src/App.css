@@ -1,0 +1,33 @@
+html, body, #root {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background-color: black;
+  font-family: sans-serif;
+}
+
+.info-box.enhanced {
+  position: absolute;
+  background: rgba(20, 20, 20, 0.95);
+  color: white;
+  padding: 12px;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(255,255,255,0.3);
+  min-width: 200px;
+  z-index: 10;
+}
+
+.controls.enhanced {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  background: rgba(15, 15, 15, 0.85);
+  color: white;
+  padding: 12px;
+  border-radius: 12px;
+  max-height: 90vh;
+  overflow-y: auto;
+  z-index: 10;
+}

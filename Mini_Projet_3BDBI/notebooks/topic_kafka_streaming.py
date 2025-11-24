@@ -10,6 +10,6 @@ fs = admin_client.create_topics(topic_list)
 for topic, f in fs.items():
     try:
         f.result()
-        print(f"Topic {topic} créé avec succès ✅")
+        print(f"Topic {topic} créé avec succès ")
     except Exception as e:
         print(f"Erreur création topic {topic}: {e}")

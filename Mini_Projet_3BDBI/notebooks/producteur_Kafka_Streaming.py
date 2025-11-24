@@ -45,7 +45,7 @@ def fetch_posts(limit=5):
                 "url": submission.url
             })
     except Exception as e:
-        print(f"❌ Reddit API Error: {e}")
+        print(f" Reddit API Error: {e}")
     return posts_data
 
 # Boucle producer
@@ -54,5 +54,5 @@ while True:
     if posts:
         for post in posts:
             producer.send(TOPIC, post)
-            print(f"✅ Sent post: {post['title']}")
+            print(f" Sent post: {post['title']}")
     time.sleep(10)

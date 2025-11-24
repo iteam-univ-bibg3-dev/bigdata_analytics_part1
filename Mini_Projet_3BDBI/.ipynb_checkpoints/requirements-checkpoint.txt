@@ -1,0 +1,11 @@
+pandas
+kafka-python
+confluent-kafka
+scikit-learn
+numpy
+praw
+python-dotenv
+pyspark
+pymongo
+streamlit
+altair
